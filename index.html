@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Saqib Khan — AI Engineer & Software Developer</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #030306;
+      --accent-cyan: #00f2fe;
+      --accent-pink: #ff007f;
+      --accent-purple: #7928ca;
+      --glass: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.12);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      background-color: var(--bg);
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+      width: 100%;
+      scroll-behavior: smooth;
+    }
+
+    #webgl-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .hud-layer {
+      position: relative;
+      z-index: 10;
+      pointer-events: none;
+      width: 100%;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      pointer-events: auto;
+      background: rgba(3, 3, 6, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem;
+      letter-spacing: 3px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .brand::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--accent-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent-cyan);
+    }
+
+    .nav-pill-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .pill-btn {
+      padding: 7px 14px;
+      border-radius: 20px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      color: #ccc;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+
+    .pill-btn:hover, .pill-btn:active {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 6vw 10vh 6vw;
+      position: relative;
+    }
+
+    .hero-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--accent-cyan);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .hero-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.2rem, 8.5vw, 6.5rem);
+      font-weight: 800;
+      line-height: 0.95;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      max-width: 900px;
+      background: linear-gradient(135deg, #ffffff 40%, rgba(255,255,255,0.4));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      word-break: break-word;
+    }
+
+    .hero-info-grid {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .hero-desc {
+      max-width: 460px;
+      font-size: 0.9rem;
+      color: #aaa;
+      line-height: 1.6;
+    }
+
+    .status-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-left: 2px solid var(--accent-pink);
+      padding-left: 10px;
+    }
+
+    .projects-container {
+      padding: 12vh 6vw 6vh 6vw;
+      pointer-events: auto;
+    }
+
+    .section-header {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .section-large-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem, 6vw, 4.2rem);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      margin-bottom: 28px;
+      background: linear-gradient(135deg, #ffffff 40%, rgba(255,255,255,0.4));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-terminal {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .terminal-card {
+      background: rgba(15, 15, 22, 0.65);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 22px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: all 0.3s ease;
+    }
+
+    .terminal-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6), 0 0 20px rgba(0, 242, 254, 0.15);
+    }
+
+    .card-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--accent-pink);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .card-value {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .card-sub {
+      color: #888;
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .glass-card {
+      background: rgba(15, 15, 22, 0.65);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 26px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(0, 242, 254, 0.4);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--accent-pink);
+      letter-spacing: 1.5px;
+      font-weight: 600;
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      margin: 8px 0;
+    }
+
+    .card-desc {
+      color: #888;
+      font-size: 0.84rem;
+      line-height: 1.5;
+    }
+
+    .tech-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tech-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #bbb;
+    }
+
+    .skills-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .skill-box-card {
+      background: rgba(15, 15, 22, 0.65);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 20px 22px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .skill-box-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
+
+    .skill-name-txt {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .skill-role-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    footer {
+      padding: 10vh 6vw 8vh 6vw;
+      pointer-events: auto;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .footer-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 5.5vw, 4.2rem);
+      margin-bottom: 16px;
+      font-weight: 800;
+      line-height: 1.05;
+    }
+
+    .contact-links {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 600px) {
+      nav {
+        padding: 14px 16px;
+      }
+      .brand {
+        font-size: 0.95rem;
+        letter-spacing: 2px;
+      }
+      .nav-pill-group {
+        gap: 6px;
+      }
+      .pill-btn {
+        padding: 6px 10px;
+        font-size: 0.65rem;
+      }
+      .hero {
+        padding: 0 5vw 8vh 5vw;
+      }
+      .projects-container {
+        padding: 10vh 5vw 4vh 5vw;
+      }
+      .contact-links .pill-btn {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="webgl-canvas"></canvas>
+
+  <div class="hud-layer">
+    <nav>
+      <a href="#home" class="brand">SAQIB KHAN</a>
+      <div class="nav-pill-group">
+        <a href="#about" class="pill-btn">About</a>
+        <a href="#projects" class="pill-btn">Works</a>
+        <a href="#skills" class="pill-btn">Skills</a>
+        <a href="#contact" class="pill-btn">Contact</a>
+      </div>
+    </nav>
+
+    <section id="home" class="hero">
+      <div class="hero-meta">GNIOT COLLEGE // CLASS OF 2028</div>
+      <h1 class="hero-title">CREATIVE<br>DIGITAL<br>EXPERIENCES.</h1>
+      <div class="hero-info-grid">
+        <p class="hero-desc">
+          B.Tech CSE (AI & ML) student crafting software architectures, intelligent algorithms, and high-performance WebGL web applications.
+        </p>
+        <div class="status-badge">
+          STATUS: AVAILABLE FOR INTERNSHIPS<br>
+          FOCUS: PYTHON, AI/ML & WEB DEVELOPMENT
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="projects-container">
+      <div class="section-header">// 01 &mdash; BACKGROUND PROFILE</div>
+      <h2 class="section-large-title">CORE IDENTITY</h2>
+      <div class="hero-terminal">
+        <div class="terminal-card">
+          <div class="card-label">DEVELOPER</div>
+          <div class="card-value">Saqib Khan</div>
+          <div class="card-sub">AI Engineer & Vibe Coder</div>
+        </div>
+        <div class="terminal-card">
+          <div class="card-label">SPECIALIZATION</div>
+          <div class="card-value">AI / ML & Python</div>
+          <div class="card-sub">B.Tech Computer Science</div>
+        </div>
+        <div class="terminal-card">
+          <div class="card-label">INSTITUTION</div>
+          <div class="card-value">GNIOT College</div>
+          <div class="card-sub">Greater Noida (Batch 2028)</div>
+        </div>
+        <div class="terminal-card">
+          <div class="card-label">LOCATION</div>
+          <div class="card-value">New Delhi, India</div>
+          <div class="card-sub">Available for Remote / On-site Internships</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="projects" class="projects-container">
+      <div class="section-header">// 02 &mdash; SELECTED WORKS</div>
+      <h2 class="section-large-title">FEATURED BUILDS</h2>
+      <div class="project-grid">
+        <div class="glass-card">
+          <div>
+            <span class="card-tag">PYTHON / UTILITY</span>
+            <h3 class="card-title">QR Code Generator</h3>
+            <p class="card-desc">A Python-based QR Code Generator that creates custom high-density QR codes for URLs, text, and metadata using specialized image libraries.</p>
+          </div>
+          <div class="tech-pill-row">
+            <span class="tech-pill">Python</span>
+            <span class="tech-pill">QRCode</span>
+            <span class="tech-pill">Pillow</span>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div>
+            <span class="card-tag">AUTOMATION / PYTHON</span>
+            <h3 class="card-title">YouTube Downloader</h3>
+            <p class="card-desc">An automated application allowing users to fetch and download high-resolution YouTube video streams with a clean graphical user interface.</p>
+          </div>
+          <div class="tech-pill-row">
+            <span class="tech-pill">Python</span>
+            <span class="tech-pill">GUI</span>
+            <span class="tech-pill">Automation</span>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div>
+            <span class="card-tag">WEB APPLICATION</span>
+            <h3 class="card-title">E-Commerce Frontend</h3>
+            <p class="card-desc">Responsive next-gen e-commerce storefront interface built with performance-focused JavaScript and modern modular UI architecture.</p>
+          </div>
+          <div class="tech-pill-row">
+            <span class="tech-pill">HTML5</span>
+            <span class="tech-pill">CSS3</span>
+            <span class="tech-pill">JavaScript</span>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div>
+            <span class="card-tag">INTERACTIVE / PYTHON</span>
+            <h3 class="card-title">For Love</h3>
+            <p class="card-desc">An expressive interactive web application creating dynamic personalized messages and interactive memories with fluid animations.</p>
+          </div>
+          <div class="tech-pill-row">
+            <span class="tech-pill">Python</span>
+            <span class="tech-pill">Interactive</span>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div>
+            <span class="card-tag">JAVASCRIPT SYSTEM</span>
+            <h3 class="card-title">Todo List Core</h3>
+            <p class="card-desc">A task management application engineered using pure JavaScript that helps users organize and track daily development activities seamlessly.</p>
+          </div>
+          <div class="tech-pill-row">
+            <span class="tech-pill">JavaScript</span>
+            <span class="tech-pill">State Sync</span>
+            <span class="tech-pill">DOM</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="skills" class="projects-container">
+      <div class="section-header">// 03 &mdash; TECHNICAL CAPABILITIES</div>
+      <h2 class="section-large-title">ARSENAL & STACK</h2>
+      <div class="skills-cards-grid">
+        <div class="skill-box-card">
+          <span class="skill-name-txt">Python</span>
+          <span class="skill-role-badge">[CORE]</span>
+        </div>
+        <div class="skill-box-card">
+          <span class="skill-name-txt">AI / ML</span>
+          <span class="skill-role-badge">[FOCUS]</span>
+        </div>
+        <div class="skill-box-card">
+          <span class="skill-name-txt">React.js</span>
+          <span class="skill-role-badge">[FRONTEND]</span>
+        </div>
+        <div class="skill-box-card">
+          <span class="skill-name-txt">JavaScript (ES6+)</span>
+          <span class="skill-role-badge">[ENGINE]</span>
+        </div>
+        <div class="skill-box-card">
+          <span class="skill-name-txt">HTML5 & Modern CSS</span>
+          <span class="skill-role-badge">[STYLE]</span>
+        </div>
+        <div class="skill-box-card">
+          <span class="skill-name-txt">Git & GitHub</span>
+          <span class="skill-role-badge">[VCS]</span>
+        </div>
+        <div class="skill-box-card">
+          <span class="skill-name-txt">Three.js / WebGL</span>
+          <span class="skill-role-badge">[3D GRAPHICS]</span>
+        </div>
+        <div class="skill-box-card">
+          <span class="skill-name-txt">Algorithm Design</span>
+          <span class="skill-role-badge">[LOGIC]</span>
+        </div>
+      </div>
+    </section>
+
+    <footer id="contact">
+      <div class="section-header">// 04 &mdash; GET IN TOUCH</div>
+      <h2 class="footer-title">Let&apos;s build the future together.</h2>
+      <p style="color: #888; max-width: 540px; line-height: 1.6; font-size: 0.9rem;">Currently open to internships, freelance projects, and AI/Web collaborations.</p>
+      <div class="contact-links">
+        <a href="mailto:sksaqibkhan110@gmail.com" class="pill-btn">sksaqibkhan110@gmail.com</a>
+        <a href="https://github.com/sksaqibkhan110-glitch" target="_blank" class="pill-btn">GITHUB PROFILE</a>
+        <a href="tel:+917827247827" class="pill-btn">+91 7827247827</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const canvas = document.querySelector('#webgl-canvas');
+    const scene = new THREE.Scene();
+    
+    const isMobile = window.innerWidth < 768;
+    const camera = new THREE.PerspectiveCamera(isMobile ? 70 : 60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = isMobile ? 8.5 : 7;
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      antialias: true,
+      alpha: true,
+      powerPreference: "high-performance"
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const particleCount = isMobile ? 3200 : 4500;
+    const positions = new Float32Array(particleCount * 3);
+    const targetPositions = new Float32Array(particleCount * 3);
+    const scales = new Float32Array(particleCount);
+
+    for (let i = 0; i < particleCount; i++) {
+      const u = Math.random();
+      const v = Math.random();
+      const theta = u * 2.0 * Math.PI;
+      const phi = Math.acos(2.0 * v - 1.0);
+      const r = Math.cbrt(Math.random()) * 3.2;
+
+      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = r * Math.cos(phi);
+
+      const u2 = Math.random() * Math.PI * 2;
+      const v2 = Math.random() * Math.PI * 2;
+      const ringRadius = isMobile ? 2.6 : 3.0;
+      const tubeRadius = isMobile ? 0.6 : 0.7;
+
+      targetPositions[i * 3] = (ringRadius + tubeRadius * Math.cos(v2)) * Math.cos(u2);
+      targetPositions[i * 3 + 1] = (ringRadius + tubeRadius * Math.cos(v2)) * Math.sin(u2);
+      targetPositions[i * 3 + 2] = tubeRadius * Math.sin(v2);
+
+      scales[i] = Math.random() * 7.0 + 3.0;
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('aTargetPosition', new THREE.BufferAttribute(targetPositions, 3));
+    geometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
+
+    const vertexShader = `
+      uniform float uTime;
+      uniform float uProgress;
+      attribute vec3 aTargetPosition;
+      attribute float aScale;
+      varying vec3 vPosition;
+
+      void main() {
+        vec3 morphed = mix(position, aTargetPosition, uProgress);
+        
+        morphed.x += sin(morphed.y * 2.0 + uTime * 1.5) * 0.12;
+        morphed.y += cos(morphed.x * 2.0 + uTime * 1.5) * 0.12;
+        morphed.z += sin(morphed.z * 2.5 + uTime * 2.0) * 0.15;
+
+        vPosition = morphed;
+        vec4 mvPosition = modelViewMatrix * vec4(morphed, 1.0);
+        
+        gl_PointSize = (aScale * 0.08) * (150.0 / -mvPosition.z);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `;
+
+    const fragmentShader = `
+      varying vec3 vPosition;
+
+      void main() {
+        float d = length(gl_PointCoord - vec2(0.5));
+        if (d > 0.5) discard;
+
+        float alpha = smoothstep(0.5, 0.05, d) * 0.7;
+
+        vec3 colorCyan = vec3(0.0, 0.95, 1.0);
+        vec3 colorPink = vec3(1.0, 0.05, 0.55);
+        vec3 color = mix(colorCyan, colorPink, smoothstep(-2.0, 2.0, vPosition.y));
+
+        gl_FragColor = vec4(color, alpha);
+      }
+    `;
+
+    const uniforms = {
+      uTime: { value: 0 },
+      uProgress: { value: 0 }
+    };
+
+    const shaderMaterial = new THREE.ShaderMaterial({
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader,
+      uniforms: uniforms,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+
+    const particleSystem = new THREE.Points(geometry, shaderMaterial);
+    scene.add(particleSystem);
+
+    const crystalGroup = new THREE.Group();
+    scene.add(crystalGroup);
+
+    const crystalCount = isMobile ? 45 : 85;
+    const crystalGeo = new THREE.BoxGeometry(0.07, 0.07, 0.07);
+    const crystalMat = new THREE.MeshBasicMaterial({
+      color: 0x66fcf1,
+      wireframe: false,
+      transparent: true,
+      opacity: 0.85
+    });
+
+    const crystals = [];
+    for (let i = 0; i < crystalCount; i++) {
+      const crystal = new THREE.Mesh(crystalGeo, crystalMat);
+      crystal.position.set(
+        (Math.random() - 0.5) * 20,
+        (Math.random() - 0.5) * 20,
+        (Math.random() - 0.5) * 12 - 2
+      );
+      crystal.rotation.set(
+        Math.random() * Math.PI,
+        Math.random() * Math.PI,
+        Math.random() * Math.PI
+      );
+
+      const s = Math.random() * 0.8 + 0.4;
+      crystal.scale.set(s, s, s);
+
+      crystal.userData = {
+        rotSpeedX: (Math.random() - 0.5) * 0.015,
+        rotSpeedY: (Math.random() - 0.5) * 0.015,
+        floatSpeed: Math.random() * 0.008 + 0.003,
+        initialY: crystal.position.y
+      };
+
+      crystalGroup.add(crystal);
+      crystals.push(crystal);
+    }
+
+    let mouseX = 0;
+    let mouseY = 0;
+    window.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouseY = -(e.clientY / window.innerHeight - 0.5) * 2;
+    });
+
+    let targetProgress = 0;
+    const updateScrollProgress = () => {
+      const scrollY = window.scrollY || window.pageYOffset;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      targetProgress = Math.min(Math.max(scrollY / (maxScroll || 1), 0), 1);
+    };
+
+    window.addEventListener('scroll', updateScrollProgress, { passive: true });
+    window.addEventListener('touchmove', updateScrollProgress, { passive: true });
+
+    const clock = new THREE.Clock();
+    function renderLoop() {
+      requestAnimationFrame(renderLoop);
+      const elapsedTime = clock.getElapsedTime();
+
+      uniforms.uTime.value = elapsedTime;
+      uniforms.uProgress.value += (targetProgress - uniforms.uProgress.value) * 0.05;
+
+      particleSystem.rotation.y = elapsedTime * 0.08 + mouseX * 0.25;
+      particleSystem.rotation.x = elapsedTime * 0.04 + mouseY * 0.15;
+
+      crystals.forEach((c) => {
+        c.rotation.x += c.userData.rotSpeedX;
+        c.rotation.y += c.userData.rotSpeedY;
+        c.position.y += Math.sin(elapsedTime * 1.5 + c.userData.initialY) * c.userData.floatSpeed;
+      });
+
+      crystalGroup.rotation.y = mouseX * 0.08;
+      crystalGroup.rotation.x = -mouseY * 0.08;
+
+      renderer.render(scene, camera);
+    }
+    renderLoop();
+
+    window.addEventListener('resize', () => {
+      const mob = window.innerWidth < 768;
+      camera.fov = mob ? 70 : 60;
+      camera.position.z = mob ? 8.5 : 7;
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
